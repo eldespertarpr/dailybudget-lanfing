@@ -1,850 +1,863 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DailyBudget</title>
-    <!-- PWA: manifest e íconos para instalación en pantalla de inicio -->
-    <meta name="description" content="DailyBudget: presupuesto diario offline, sin cuenta y sin suscripción.">
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#4f46e5">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="DailyBudget">
-    <link rel="apple-touch-icon" href="icons/icon-192.png">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
-        
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: #f1f5f9;
-            -webkit-tap-highlight-color: transparent;
-            overscroll-behavior: none;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DailyBudget — Controla tu dinero día a día</title>
+  <meta name="description" content="La app que distribuye tu dinero entre los días que faltan. Sin suscripción. Sin cuenta. Pago único $7." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        .action-button {
-            touch-action: manipulation;
-            transition: transform 0.1s ease-in-out;
-        }
+    :root {
+      --indigo:   #4f46e5;
+      --indigo-d: #3730a3;
+      --indigo-l: #e0e7ff;
+      --slate:    #1e1b4b;
+      --mid:      #6b7280;
+      --light:    #f8fafc;
+      --white:    #ffffff;
+      --green:    #059669;
+      --amber:    #b45309;
+      --radius:   16px;
+    }
 
-        .action-button:active {
-            transform: scale(0.96);
-        }
+    html { scroll-behavior: smooth; }
 
-        input, select {
-            font-size: 16px !important;
-        }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--light);
+      color: var(--slate);
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+    }
 
-        .hidden-section { display: none; }
+    .container {
+      width: min(100% - 40px, 1120px);
+      margin-inline: auto;
+    }
 
-        /* Estado negativo en la tarjeta principal */
-        #status-card.is-negative { background-color: #dc2626; } /* red-600 */
-        #display-daily-available.is-negative { color: #fca5a5; } /* red-300, legible sobre rojo */
-    </style>
+    html[lang="es"] .lang-en { display: none !important; }
+    html[lang="en"] .lang-es { display: none !important; }
+
+    nav {
+      background: var(--white);
+      border-bottom: 1px solid #e2e8f0;
+      padding: 10px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      gap: 8px;
+    }
+
+    .nav-brand {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1rem;
+      color: var(--indigo);
+      text-decoration: none;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .lang-toggle { display: flex; gap: 4px; }
+
+    .lang-btn {
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 4px 9px;
+      border-radius: 6px;
+      border: 1px solid #e2e8f0;
+      background: transparent;
+      cursor: pointer;
+      color: var(--mid);
+      font-family: 'DM Sans', sans-serif;
+      transition: all 0.15s;
+    }
+
+    .lang-btn.active {
+      background: var(--indigo);
+      color: white;
+      border-color: var(--indigo);
+    }
+
+    .nav-cta {
+      background: var(--indigo);
+      color: var(--white);
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 0.82rem;
+      padding: 8px 14px;
+      border-radius: 10px;
+      text-decoration: none;
+      white-space: nowrap;
+      transition: background 0.2s;
+    }
+
+    .nav-cta:hover { background: var(--indigo-d); }
+
+    .hero {
+      background: linear-gradient(135deg, #1e1b4b 0%, #312e81 60%, #4338ca 100%);
+      color: var(--white);
+      padding: 90px 24px 70px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        radial-gradient(circle at 20% 50%, rgba(99,102,241,.3) 0%, transparent 60%),
+        radial-gradient(circle at 80% 20%, rgba(79,70,229,.2) 0%, transparent 50%);
+    }
+
+    .hero .container { position: relative; }
+
+    .hero-badge {
+      display: inline-block;
+      background: rgba(255,255,255,.12);
+      border: 1px solid rgba(255,255,255,.25);
+      color: #c7d2fe;
+      font-size: .7rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      padding: 6px 16px;
+      border-radius: 20px;
+      margin-bottom: 28px;
+    }
+
+    .hero h1 {
+      font-family: 'DM Sans', sans-serif;
+      font-size: clamp(2.2rem, 8vw, 4.5rem);
+      font-weight: 700;
+      line-height: 1.08;
+      letter-spacing: -.015em;
+      text-wrap: balance;
+      margin-bottom: 22px;
+      max-width: 11ch;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    @media (min-width: 768px) {
+      .hero h1 {
+        font-family: 'Syne', sans-serif;
+        font-weight: 800;
+        font-size: clamp(2.5rem, 5vw, 3.8rem);
+        letter-spacing: -.02em;
+        line-height: 1.08;
+      }
+    }
+
+    .hero h1 em { font-style: normal; color: #a5b4fc; }
+
+    .hero-sub {
+      font-size: clamp(.97rem, 2.5vw, 1.15rem);
+      font-weight: 400;
+      line-height: 1.7;
+      color: rgba(255,255,255,.82);
+      max-width: 520px;
+      margin: 0 auto 36px;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    .btn-primary {
+      display: inline-block;
+      background: var(--white);
+      color: var(--indigo);
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1rem;
+      line-height: 1.2;
+      text-align: center;
+      padding: 15px 32px;
+      border-radius: var(--radius);
+      text-decoration: none;
+      box-shadow: 0 4px 24px rgba(0,0,0,.18);
+      transition: transform .15s, box-shadow .15s;
+    }
+
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,.24); }
+
+    .btn-ghost {
+      color: rgba(255,255,255,.8);
+      font-size: .9rem;
+      padding: 15px 22px;
+      border-radius: var(--radius);
+      text-decoration: none;
+      border: 1px solid rgba(255,255,255,.3);
+      transition: border-color .2s, color .2s;
+    }
+
+    .btn-ghost:hover { border-color: rgba(255,255,255,.7); color: var(--white); }
+
+    .hero-note {
+      font-size: .78rem;
+      color: rgba(255,255,255,.48);
+    }
+
+    .mockup-section {
+      background: linear-gradient(180deg,#312e81 0%,var(--light) 60%);
+      padding: 0 24px 60px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .phone {
+      width: 240px;
+      background: #1e1b4b;
+      border-radius: 36px;
+      padding: 14px;
+      box-shadow: 0 32px 80px rgba(30,27,75,.5), 0 0 0 1px rgba(255,255,255,.08);
+      margin-top: -20px;
+    }
+
+    .phone-screen { background: #f1f5f9; border-radius: 26px; overflow: hidden; }
+
+    .phone-header {
+      background: white;
+      padding: 10px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .phone-header span:first-child { font-family:'Syne',sans-serif; font-weight:800; font-size:11px; color:#4f46e5; }
+    .phone-header span:last-child  { font-size:8px; color:#ef4444; font-weight:700; text-transform:uppercase; letter-spacing:.05em; }
+
+    .phone-card { background:#4f46e5; margin:10px; border-radius:18px; padding:14px; color:white; }
+    .phone-card-row { display:flex; justify-content:space-between; margin-bottom:10px; }
+    .phone-card-label { font-size:7px; color:rgba(255,255,255,.7); text-transform:uppercase; letter-spacing:.08em; margin-bottom:2px; }
+    .phone-card-val { font-family:'Syne',sans-serif; font-size:15px; font-weight:800; }
+    .phone-card-val.green { color:#6ee7b7; }
+    .phone-divider { border-top:1px solid rgba(255,255,255,.15); margin:8px 0; }
+    .phone-card-mini { display:flex; justify-content:space-between; }
+    .phone-card-mini-item p:first-child { font-size:7px; color:rgba(255,255,255,.6); text-transform:uppercase; }
+    .phone-card-mini-item p:last-child  { font-size:11px; font-weight:700; }
+    .phone-card-mini-item:last-child { text-align:right; }
+
+    .phone-expense {
+      margin:0 10px 6px;
+      background:white;
+      border-radius:12px;
+      padding:8px 12px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+    }
+
+    .phone-expense-name { font-size:9px; font-weight:700; color:#1e293b; }
+    .phone-expense-cat  { font-size:7px; color:#94a3b8; text-transform:uppercase; }
+    .phone-expense-amt  { font-size:9px; font-weight:800; color:#1e293b; }
+
+    .phone-btn {
+      margin:8px 10px 10px;
+      background:#0f172a;
+      color:white;
+      border-radius:12px;
+      padding:9px;
+      text-align:center;
+      font-size:9px;
+      font-weight:700;
+      font-family:'Syne',sans-serif;
+    }
+
+    section { padding: 80px 0; }
+    section.alt { background: var(--white); }
+
+    .section-label {
+      display: inline-block;
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--indigo);
+      margin-bottom: 10px;
+    }
+
+    .section-title {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(1.3rem, 3vw, 2.4rem);
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 16px;
+      color: var(--slate);
+    }
+
+    .section-sub {
+      color: var(--mid);
+      font-size: 1.02rem;
+      max-width: 520px;
+      line-height: 1.65;
+    }
+
+    .problem-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill,minmax(240px,1fr));
+      gap: 20px;
+      margin-top: 44px;
+    }
+
+    .problem-card { background:#fef2f2; border:1px solid #fecaca; border-radius:var(--radius); padding:24px; }
+    .problem-card .icon { font-size:1.6rem; margin-bottom:10px; }
+    .problem-card h3 { font-size:.97rem; font-weight:700; margin-bottom:6px; color:#991b1b; }
+    .problem-card p  { font-size:.87rem; color:#b91c1c; line-height:1.55; }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fill,minmax(200px,1fr));
+      gap: 24px;
+      margin-top: 44px;
+    }
+
+    .step { text-align:center; padding:28px 20px; background:var(--light); border-radius:var(--radius); border:1px solid #e2e8f0; }
+
+    .step-num {
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      width:44px; height:44px;
+      background:var(--indigo-l);
+      color:var(--indigo);
+      font-family:'Syne',sans-serif;
+      font-weight:800;
+      font-size:1.1rem;
+      border-radius:50%;
+      margin-bottom:14px;
+    }
+
+    .step h3 { font-size:.97rem; font-weight:700; margin-bottom:6px; font-family:'Syne',sans-serif; }
+    .step p  { font-size:.85rem; color:var(--mid); }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-top: 44px;
+    }
+
+    .feature { background:var(--light); border:1px solid #e2e8f0; border-radius:var(--radius); padding:26px 22px; transition:border-color .2s,box-shadow .2s; }
+    .feature:hover { border-color:#a5b4fc; box-shadow:0 4px 20px rgba(79,70,229,.08); }
+    .feature-icon { font-size:1.8rem; margin-bottom:12px; }
+    .feature h3   { font-size:1rem; font-weight:700; margin-bottom:6px; font-family:'Syne',sans-serif; }
+    .feature p    { font-size:.87rem; color:var(--mid); line-height:1.6; }
+
+    .pricing-card {
+      max-width:420px;
+      margin:44px auto 0;
+      background:var(--white);
+      border:2px solid var(--indigo);
+      border-radius:24px;
+      padding:38px 34px;
+      text-align:center;
+      box-shadow:0 8px 40px rgba(79,70,229,.12);
+    }
+
+    .pricing-badge {
+      display:inline-block;
+      background:var(--indigo-l);
+      color:var(--indigo);
+      font-size:.72rem;
+      font-weight:700;
+      letter-spacing:.1em;
+      text-transform:uppercase;
+      padding:5px 14px;
+      border-radius:20px;
+      margin-bottom:20px;
+    }
+
+    .pricing-price { font-family:'Syne',sans-serif; font-size:3.5rem; font-weight:800; color:var(--slate); line-height:1; margin-bottom:6px; }
+    .pricing-once  { font-size:.85rem; color:var(--mid); margin-bottom:28px; }
+
+    .pricing-list { list-style:none; text-align:left; margin-bottom:30px; display:flex; flex-direction:column; gap:10px; }
+
+    .pricing-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: .92rem;
+      color: var(--slate);
+    }
+
+    .pricing-list li::before { content:'✓'; color:var(--green); font-weight:800; flex-shrink:0; margin-top:1px; }
+
+    .btn-buy {
+      display:block;
+      background:var(--indigo);
+      color:var(--white);
+      font-family:'Syne',sans-serif;
+      font-weight:800;
+      font-size:1.05rem;
+      line-height:1.2;
+      text-align:center;
+      padding:17px;
+      border-radius:var(--radius);
+      text-decoration:none;
+      box-shadow:0 4px 20px rgba(79,70,229,.3);
+      transition:background .2s,transform .15s,box-shadow .15s;
+    }
+
+    .btn-buy:hover { background:var(--indigo-d); transform:translateY(-2px); box-shadow:0 8px 28px rgba(79,70,229,.4); }
+
+    .pricing-note { font-size:.78rem; color:var(--mid); margin-top:14px; }
+
+    .pricing-note.notice {
+      margin-top: 10px;
+      font-weight: 700;
+      color: var(--amber);
+    }
+
+    .faq-list { max-width:680px; margin:44px auto 0; display:flex; flex-direction:column; gap:14px; }
+    .faq-item { background:var(--white); border:1px solid #e2e8f0; border-radius:var(--radius); padding:22px 24px; }
+    .faq-item h3 { font-size:.97rem; font-weight:700; margin-bottom:6px; font-family:'Syne',sans-serif; }
+    .faq-item p  { font-size:.87rem; color:var(--mid); line-height:1.6; }
+
+    footer { background:var(--slate); color:rgba(255,255,255,.5); text-align:center; padding:34px 24px; font-size:.82rem; }
+    footer a      { color:rgba(255,255,255,.7); text-decoration:none; }
+    footer strong { color:rgba(255,255,255,.9); font-family:'Syne',sans-serif; }
+
+    .final-cta {
+      background: linear-gradient(135deg,#1e1b4b 0%,#4338ca 100%);
+      padding: 80px 0;
+      text-align: center;
+    }
+
+    .final-cta-copy {
+      color: rgba(255,255,255,.7);
+      margin-bottom: 32px;
+      font-size: 1.05rem;
+    }
+
+    .final-cta .btn-primary {
+      min-width: min(100%, 360px);
+      max-width: 100%;
+      white-space: normal;
+      padding-inline: 24px;
+    }
+
+    @media (max-width:640px) {
+      nav             { padding: 10px 12px; gap: 6px; }
+      .nav-brand      { font-size: .92rem; }
+      .nav-right      { gap: 6px; }
+      .lang-toggle    { gap: 3px; }
+      .lang-btn       { font-size: .68rem; padding: 4px 8px; }
+      .nav-cta        { font-size: .78rem; padding: 8px 12px; }
+
+      .container      { width: 100%; padding-inline: 20px; margin-inline: auto; }
+
+      .features-grid  { grid-template-columns:1fr; }
+      section         { padding:56px 0; }
+      .pricing-card   { padding:28px 20px; }
+      .hero           { padding:64px 20px 52px; }
+      .hero h1        { font-size: clamp(2rem, 7vw, 3.4rem); line-height: 1.05; max-width: 9ch; }
+      .hero-sub       { font-size: 1rem; max-width: 30rem; margin-bottom: 30px; }
+      .hero-badge     { margin-bottom: 22px; }
+
+      .mockup-section { padding: 0 20px 44px; }
+      .phone          { width: 224px; margin-top: -10px; box-shadow: 0 20px 48px rgba(30,27,75,.32), 0 0 0 1px rgba(255,255,255,.08); }
+
+      .problem-grid,
+      .steps,
+      .faq-list       { gap: 16px; margin-top: 32px; }
+
+      .problem-card,
+      .step,
+      .feature,
+      .faq-item       { padding: 20px 18px; }
+
+      .features-grid  { gap: 14px; margin-top: 32px; }
+
+      .pricing-list li { font-size: .9rem; }
+      .btn-buy        { line-height: 1.25; padding: 16px 18px; }
+
+      .final-cta      { padding:64px 0; }
+      .final-cta-copy { font-size: .98rem; }
+      .final-cta .btn-primary {
+        width: 100%;
+        min-width: 0;
+      }
+    }
+
+    @keyframes fadeUp {
+      from { opacity:0; transform:translateY(20px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+
+    .hero .container > * { animation:fadeUp .55s ease both; }
+    .hero-badge   { animation-delay:.05s; }
+    .hero h1      { animation-delay:.15s; }
+    .hero-sub     { animation-delay:.25s; }
+    .hero-actions { animation-delay:.35s; }
+    .hero-note    { animation-delay:.45s; }
+  </style>
 </head>
 <body>
 
-    <!-- Main Header -->
-    <header class="bg-white border-b border-slate-200 px-5 py-4 flex justify-between items-center shrink-0">
-        <h1 class="text-xl font-extrabold text-indigo-600 tracking-tight">DailyBudget</h1>
-        <div class="flex items-center gap-2">
-            <button id="btn-export" type="button" class="text-xs font-semibold text-slate-400 uppercase tracking-widest p-2 active:opacity-50 hidden">
-                Exportar
-            </button>
-            <button id="btn-guide" type="button" class="text-xs font-semibold text-indigo-400 uppercase tracking-widest p-2 active:opacity-50">
-                Guía
-            </button>
-            <button id="btn-reset-app" type="button" class="text-xs font-semibold text-red-500 uppercase tracking-widest p-2 active:opacity-50">
-                Reiniciar
-            </button>
-        </div>
-    </header>
+<nav>
+  <a href="#" class="nav-brand">DailyBudget</a>
+  <div class="nav-right">
+    <div class="lang-toggle">
+      <button class="lang-btn active" id="btn-es" onclick="setLang('es')">ES</button>
+      <button class="lang-btn" id="btn-en" onclick="setLang('en')">EN</button>
+    </div>
+    <a href="https://direrian.gumroad.com/l/xptggu" class="nav-cta lang-es">Comprar $7</a>
+    <a href="https://direrian.gumroad.com/l/xptggu" class="nav-cta lang-en">Buy $7</a>
+  </div>
+</nav>
 
-    <main id="app" class="flex-grow p-4 space-y-4 pb-24 overflow-x-hidden">
-        
-        <!-- Setup: Configuration Section -->
-        <section id="setup-section" class="bg-white rounded-3xl p-6 shadow-sm space-y-6 hidden-section">
-            <div class="space-y-2">
-                <h2 class="text-2xl font-bold text-slate-800">Configuración</h2>
-                <p class="text-slate-500 text-sm">Define tu presupuesto para el periodo.</p>
-            </div>
-            
-            <div class="space-y-4">
-                <div class="space-y-2">
-                    <label class="text-xs font-bold text-slate-400 uppercase ml-1">Nombre del periodo <span class="normal-case font-normal">(opcional)</span></label>
-                    <input type="text" id="init-period-name" class="w-full bg-slate-50 border-0 p-4 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none text-lg font-semibold" placeholder="Ej. Quincena enero">
-                </div>
-                <div class="space-y-2">
-                    <label class="text-xs font-bold text-slate-400 uppercase ml-1">Balance total ($)</label>
-                    <input type="number" id="init-total-balance" step="0.01" inputmode="decimal" class="w-full bg-slate-50 border-0 p-4 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none text-lg font-semibold" placeholder="0.00">
-                </div>
-                <div class="space-y-2">
-                    <label class="text-xs font-bold text-slate-400 uppercase ml-1">Días del periodo</label>
-                    <input type="number" id="init-total-days" inputmode="numeric" class="w-full bg-slate-50 border-0 p-4 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none text-lg font-semibold" placeholder="Ej. 10">
-                </div>
-                <button onclick="initializeBudget()" class="action-button w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl shadow-lg mt-2">
-                    Comenzar Plan
-                </button>
-                <div class="text-center pt-2">
-                    <p class="text-xs text-slate-400 mb-2">¿Tienes un respaldo guardado?</p>
-                    <button id="btn-import" class="text-xs font-bold text-indigo-500 underline underline-offset-2">Importar datos desde archivo</button>
-                    <input type="file" id="import-file-input" accept=".json" class="hidden" />
-                </div>
-            </div>
-        </section>
+<div class="hero">
+  <div class="container">
+    <div class="hero-badge lang-es">💰 Pago único · Sin suscripción · Sin cuenta</div>
+    <div class="hero-badge lang-en">💰 One-time payment · No subscription · No account</div>
 
-        <!-- Main Dashboard -->
-        <section id="main-section" class="hidden-section space-y-4">
-            
-            <!-- Key Stats Card -->
-            <!-- FIX #5: Cuando daysLeft === 0, render() muestra una tarjeta de periodo completado
-                 en lugar de este card. Este card solo aparece cuando daysLeft > 0. -->
-            <div id="status-card" class="bg-indigo-600 rounded-3xl p-6 text-white shadow-xl relative overflow-hidden transition-colors">
-                <div class="relative z-10 space-y-4">
-                    <!-- Nombre del periodo y fecha de inicio -->
-                    <div id="display-period-meta" class="flex justify-between items-center pb-1 border-b border-white/10">
-                        <span id="display-period-name" class="text-xs font-bold text-indigo-200 uppercase tracking-wider"></span>
-                        <span id="display-period-date" class="text-[10px] text-indigo-300"></span>
-                    </div>
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="text-indigo-100 text-xs font-bold uppercase tracking-wider mb-1">Presupuesto de hoy</p>
-                            <div id="display-daily-budget" class="text-2xl font-extrabold tracking-tight">$0.00</div>
-                        </div>
-                        <div class="text-right">
-                            <p class="text-indigo-100 text-xs font-bold uppercase tracking-wider mb-1">Disponible Hoy</p>
-                            <div id="display-daily-available" class="text-2xl font-extrabold tracking-tight">$0.00</div>
-                        </div>
-                    </div>
+    <h1 class="lang-es">Tu dinero, <em>distribuido inteligentemente</em> entre los días que faltan</h1>
+    <h1 class="lang-en">Your money, <em>distributed smartly</em> across the days ahead</h1>
 
-                    <div class="grid grid-cols-2 gap-4 border-t border-white/20 pt-4">
-                        <div>
-                            <p class="text-indigo-200 text-[10px] uppercase font-bold mb-1">Gastado Hoy</p>
-                            <div id="display-daily-spent" class="text-lg font-bold">$0.00</div>
-                        </div>
-                        <div class="text-right">
-                            <p class="text-indigo-200 text-[10px] uppercase font-bold mb-1">Días Restantes</p>
-                            <div id="display-days-left" class="text-lg font-bold">0</div>
-                        </div>
-                    </div>
+    <p class="hero-sub lang-es">DailyBudget calcula cuánto puedes gastar cada día y redistribuye automáticamente lo que te sobra. Sin hojas de cálculo. Sin apps complicadas.</p>
+    <p class="hero-sub lang-en">DailyBudget calculates how much you can spend each day and automatically redistributes what's left over. No spreadsheets. No complicated apps.</p>
 
-                    <div class="pt-2 text-center">
-                        <p class="text-indigo-200 text-[10px] uppercase font-bold mb-1 tracking-widest">Balance Total Restante</p>
-                        <div id="display-total-remaining" class="text-xl font-bold text-center">$0.00</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Tarjeta de periodo completado -->
-            <div id="completed-card" class="hidden bg-emerald-600 rounded-3xl p-6 text-white shadow-xl text-center space-y-3">
-                <div class="text-3xl">✅</div>
-                <h2 class="text-xl font-extrabold">Periodo completado</h2>
-                <p id="display-completed-name" class="text-emerald-200 text-xs font-bold uppercase tracking-wider"></p>
-                <div id="display-completed-remaining" class="text-2xl font-extrabold pt-1">$0.00</div>
-                <p class="text-emerald-200 text-xs">balance restante sin gastar</p>
-                <div class="pt-2 flex flex-col gap-2">
-                    <button id="btn-export-completed" class="action-button w-full bg-white text-emerald-700 font-bold py-3 rounded-2xl text-sm">
-                        Exportar resumen antes de cerrar
-                    </button>
-                    <button id="btn-new-period" class="action-button w-full bg-emerald-800 text-white font-bold py-3 rounded-2xl text-sm">
-                        Iniciar nuevo periodo
-                    </button>
-                </div>
-            </div>
-
-            <!-- Summary Breakdown -->
-            <!-- FIX #7: Renombrado de "Resumen Semanal" a "Resumen del Periodo"
-                 El filtro ahora usa dayIndex en lugar de timestamp para no depender
-                 de fechas reales del calendario, que no corresponden a los "días" de la app. -->
-            <div id="weekly-summary-area" class="bg-white rounded-3xl p-5 shadow-sm space-y-4">
-                <div class="flex justify-between items-center px-1">
-                    <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Resumen del Periodo</h3>
-                    <div id="weekly-total" class="text-sm font-extrabold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full">$0.00</div>
-                </div>
-                <div id="weekly-category-list" class="space-y-2"></div>
-            </div>
-
-            <!-- Expense Registration Area -->
-            <div id="input-area" class="bg-white rounded-3xl p-6 shadow-sm space-y-4">
-                <div class="flex justify-between items-center">
-                    <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider">Registrar Gasto</h3>
-                    <button onclick="openAdjustmentModal()" class="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded-lg uppercase">
-                        + Gasto Atrasado
-                    </button>
-                </div>
-                <div class="space-y-3">
-                    <div class="flex gap-2 w-full items-center">
-                        <input type="text" id="expense-name" class="flex-grow min-w-0 bg-slate-50 border-0 p-3 rounded-xl outline-none text-sm" placeholder="Concepto">
-                        <input type="number" id="expense-amount" step="0.01" inputmode="decimal" class="w-20 bg-slate-50 border-0 p-3 rounded-xl outline-none text-sm font-bold" placeholder="$0.00">
-                        <button onclick="addExpense()" class="action-button bg-indigo-600 text-white w-11 h-11 rounded-xl flex items-center justify-center shrink-0 shadow-md">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                            </svg>
-                        </button>
-                    </div>
-                    <select id="expense-category" class="w-full bg-slate-50 border-0 p-3 rounded-xl outline-none text-xs font-semibold text-slate-600 appearance-none">
-                        <option value="Otros">Otros</option>
-                        <option value="Supermercado">Supermercado</option>
-                        <option value="Comer fuera">Comer fuera</option>
-                        <option value="Gasolina">Gasolina</option>
-                        <option value="Peaje">Peaje</option>
-                        <option value="Automóvil">Automóvil</option>
-                        <option value="Entretenimiento">Entretenimiento</option>
-                        <option value="Hobbies">Hobbies</option>
-                        <option value="Mascotas">Mascotas</option>
-                        <option value="Plantas o jardín">Plantas o jardín</option>
-                        <option value="Salud">Salud</option>
-                        <option value="Hogar">Hogar</option>
-                    </select>
-                </div>
-            </div>
-
-            <button onclick="finishDay()" id="btn-finish-day" class="action-button w-full bg-slate-900 text-white font-bold py-4 rounded-2xl shadow-lg">
-                Terminar Día
-            </button>
-
-            <!-- Listado de Hoy -->
-            <div class="space-y-3">
-                <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider ml-2">Gastos de hoy</h3>
-                <div id="expense-list" class="space-y-2"></div>
-            </div>
-
-            <!-- Historial -->
-            <div id="history-section" class="space-y-3 pb-8">
-                <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider ml-2">Historial Detallado</h3>
-                <div id="history-list" class="space-y-2"></div>
-            </div>
-
-        </section>
-    </main>
-
-    <!-- Modal Confirmar Fin de Día -->
-    <div id="confirm-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-6 hidden">
-        <div class="bg-white w-full max-w-xs rounded-3xl p-6 space-y-4 shadow-2xl">
-            <h3 class="font-bold text-lg text-slate-800">¿Terminar el día?</h3>
-            <p class="text-sm text-slate-500">El sobrante de hoy se redistribuirá entre los días restantes. Esta acción no se puede deshacer.</p>
-            <div class="flex gap-2">
-                <button id="confirm-cancel" class="flex-1 py-3 font-bold text-slate-500 text-sm">Cancelar</button>
-                <button id="confirm-ok" class="flex-1 py-3 bg-slate-900 text-white font-bold rounded-xl text-sm shadow-md">Confirmar</button>
-            </div>
-        </div>
+    <div class="hero-actions">
+      <a href="https://direrian.gumroad.com/l/xptggu" class="btn-primary lang-es">Obtener por $7 →</a>
+      <a href="https://direrian.gumroad.com/l/xptggu" class="btn-primary lang-en">Get it for $7 →</a>
+      <a href="#como-funciona" class="btn-ghost lang-es">Ver cómo funciona</a>
+      <a href="#como-funciona" class="btn-ghost lang-en">See how it works</a>
     </div>
 
-    <!-- Modal Ajuste Atrasado -->
-    <div id="adjustment-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-6 hidden">
-        <div class="bg-white w-full max-w-xs rounded-3xl p-6 space-y-4 shadow-2xl">
-            <h3 class="font-bold text-lg text-slate-800">Gasto Atrasado</h3>
-            <div class="space-y-3">
-                <select id="adj-day" class="w-full bg-slate-50 p-3 rounded-xl border border-slate-200 font-bold text-indigo-600"></select>
-                <input type="text" id="adj-name" class="w-full bg-slate-50 p-3 rounded-xl border border-slate-200 text-sm" placeholder="Concepto">
-                <input type="number" id="adj-amount" step="0.01" inputmode="decimal" class="w-full bg-slate-50 p-3 rounded-xl font-bold" placeholder="0.00">
-                <!-- FIX #3: Selector de categoría añadido al modal de ajuste atrasado.
-                     Antes estaba hardcodeado como 'Otros', contaminando el resumen por categorías. -->
-                <select id="adj-category" class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl outline-none text-xs font-semibold text-slate-600 appearance-none">
-                    <option value="Otros">Otros</option>
-                    <option value="Supermercado">Supermercado</option>
-                    <option value="Comer fuera">Comer fuera</option>
-                    <option value="Gasolina">Gasolina</option>
-                    <option value="Peaje">Peaje</option>
-                    <option value="Automóvil">Automóvil</option>
-                    <option value="Entretenimiento">Entretenimiento</option>
-                    <option value="Hobbies">Hobbies</option>
-                    <option value="Mascotas">Mascotas</option>
-                    <option value="Plantas o jardín">Plantas o jardín</option>
-                    <option value="Salud">Salud</option>
-                    <option value="Hogar">Hogar</option>
-                </select>
-            </div>
-            <div class="flex gap-2">
-                <button onclick="closeAdjustmentModal()" class="flex-1 py-3 font-bold text-slate-500 text-sm">Cancelar</button>
-                <button onclick="saveAdjustment()" class="flex-1 py-3 bg-indigo-600 text-white font-bold rounded-xl text-sm shadow-md">Guardar</button>
-            </div>
+    <p class="hero-note lang-es">Pago único · Tuyo para siempre · Funciona offline</p>
+    <p class="hero-note lang-en">One-time payment · Yours forever · Works offline</p>
+  </div>
+</div>
+
+<div class="mockup-section">
+  <div class="phone">
+    <div class="phone-screen">
+      <div class="phone-header">
+        <span>DailyBudget</span>
+        <span>Exportar</span>
+      </div>
+      <div class="phone-card">
+        <div class="phone-card-row">
+          <div>
+            <div class="phone-card-label">Presupuesto hoy</div>
+            <div class="phone-card-val">$45.00</div>
+          </div>
+          <div style="text-align:right">
+            <div class="phone-card-label">Disponible hoy</div>
+            <div class="phone-card-val green">$27.50</div>
+          </div>
         </div>
-    </div>
-
-    <!-- Modal Guía -->
-    <div id="guide-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-end justify-center hidden">
-        <div class="bg-white w-full max-w-md rounded-t-3xl shadow-2xl overflow-y-auto" style="max-height:88vh;">
-            <div class="sticky top-0 bg-white border-b border-slate-100 px-6 py-4 flex justify-between items-center">
-                <h2 class="text-base font-extrabold text-slate-800">Guía de uso</h2>
-                <button id="btn-guide-close" class="text-xs font-bold text-slate-400 uppercase tracking-widest p-2 active:opacity-50">Cerrar</button>
-            </div>
-            <div class="px-6 py-5 space-y-6 pb-10">
-
-                <!-- Instalar en Android -->
-                <div class="space-y-2">
-                    <h3 class="text-xs font-extrabold text-indigo-600 uppercase tracking-wider">📱 Instalar en Android</h3>
-                    <ol class="text-sm text-slate-600 space-y-1 list-decimal list-inside">
-                        <li>Abre la URL de la app en <strong>Google Chrome</strong>.</li>
-                        <li>Toca el menú de 3 puntos (esquina superior derecha).</li>
-                        <li>Elige <strong>"Instalar app"</strong> o <strong>"Añadir a pantalla de inicio"</strong>.</li>
-                        <li>La app aparecerá en tu pantalla de inicio como cualquier otra app.</li>
-                    </ol>
-                </div>
-
-                <div class="border-t border-slate-100"></div>
-
-                <!-- Instalar en iPhone -->
-                <div class="space-y-2">
-                    <h3 class="text-xs font-extrabold text-indigo-600 uppercase tracking-wider">🍎 Instalar en iPhone</h3>
-                    <ol class="text-sm text-slate-600 space-y-1 list-decimal list-inside">
-                        <li>Abre la URL de la app en <strong>Safari</strong> (no en Chrome).</li>
-                        <li>Toca el botón <strong>Compartir</strong> (cuadrado con flecha hacia arriba).</li>
-                        <li>Elige <strong>"Añadir a pantalla de inicio"</strong>.</li>
-                        <li>Toca <strong>"Añadir"</strong> en la esquina superior derecha.</li>
-                    </ol>
-                </div>
-
-                <div class="border-t border-slate-100"></div>
-
-                <!-- Cómo empezar un periodo -->
-                <div class="space-y-2">
-                    <h3 class="text-xs font-extrabold text-indigo-600 uppercase tracking-wider">🚀 Cómo empezar un periodo</h3>
-                    <ol class="text-sm text-slate-600 space-y-1 list-decimal list-inside">
-                        <li>Escribe un nombre para el periodo (opcional, ej. "Quincena abril").</li>
-                        <li>Ingresa tu balance total disponible.</li>
-                        <li>Ingresa cuántos días tiene el periodo.</li>
-                        <li>Toca <strong>"Comenzar Plan"</strong>. La app calculará tu límite diario automáticamente.</li>
-                    </ol>
-                </div>
-
-                <div class="border-t border-slate-100"></div>
-
-                <!-- Cómo registrar gastos -->
-                <div class="space-y-2">
-                    <h3 class="text-xs font-extrabold text-indigo-600 uppercase tracking-wider">💸 Cómo registrar un gasto</h3>
-                    <ol class="text-sm text-slate-600 space-y-1 list-decimal list-inside">
-                        <li>Escribe el concepto del gasto (ej. "Almuerzo").</li>
-                        <li>Escribe el monto.</li>
-                        <li>Elige una categoría.</li>
-                        <li>Toca el botón <strong>+</strong> para registrarlo.</li>
-                    </ol>
-                    <p class="text-xs text-slate-400 mt-1">Si olvidaste registrar un gasto de un día anterior, usa <strong>"+ Gasto Atrasado"</strong>.</p>
-                </div>
-
-                <div class="border-t border-slate-100"></div>
-
-                <!-- Terminar el día -->
-                <div class="space-y-2">
-                    <h3 class="text-xs font-extrabold text-indigo-600 uppercase tracking-wider">🌙 Cómo terminar el día</h3>
-                    <p class="text-sm text-slate-600">Al final de cada día, toca <strong>"Terminar Día"</strong>. Lo que sobró o faltó se redistribuye automáticamente entre los días restantes.</p>
-                    <p class="text-xs text-slate-400">Esta acción no se puede deshacer. Hazla una vez por día, al final.</p>
-                </div>
-
-                <div class="border-t border-slate-100"></div>
-
-                <!-- Exportar datos -->
-                <div class="space-y-2">
-                    <h3 class="text-xs font-extrabold text-indigo-600 uppercase tracking-wider">💾 Cómo exportar tus datos</h3>
-                    <p class="text-sm text-slate-600">Toca <strong>"Exportar"</strong> en la parte superior de la pantalla. Se descargará un archivo <code class="bg-slate-100 px-1 rounded">.json</code> con todo tu historial. Guárdalo como respaldo.</p>
-                </div>
-
-                <div class="border-t border-slate-100"></div>
-
-                <!-- Importar datos -->
-                <div class="space-y-2">
-                    <h3 class="text-xs font-extrabold text-indigo-600 uppercase tracking-wider">📂 Cómo importar tus datos</h3>
-                    <p class="text-sm text-slate-600">En la pantalla de inicio (antes de comenzar un periodo), toca <strong>"Importar datos desde archivo"</strong> y selecciona tu archivo de respaldo. Tus datos se restaurarán tal como estaban.</p>
-                </div>
-
-            </div>
+        <div class="phone-divider"></div>
+        <div class="phone-card-mini">
+          <div class="phone-card-mini-item"><p>Gastado</p><p>$17.50</p></div>
+          <div class="phone-card-mini-item"><p>Días restantes</p><p>8</p></div>
         </div>
+      </div>
+      <div class="phone-expense">
+        <div><div class="phone-expense-name">Almuerzo</div><div class="phone-expense-cat">Comer fuera</div></div>
+        <div class="phone-expense-amt">-$12.00</div>
+      </div>
+      <div class="phone-expense">
+        <div><div class="phone-expense-name">Gasolina</div><div class="phone-expense-cat">Automóvil</div></div>
+        <div class="phone-expense-amt">-$5.50</div>
+      </div>
+      <div class="phone-btn">Terminar Día</div>
     </div>
+  </div>
+</div>
+
+<section>
+  <div class="container">
+    <span class="section-label lang-es">El problema</span>
+    <span class="section-label lang-en">The problem</span>
+
+    <h2 class="section-title lang-es">¿Te quedas sin dinero antes de que llegue el próximo pago?</h2>
+    <h2 class="section-title lang-en">Running out of money before your next paycheck?</h2>
+
+    <p class="section-sub lang-es">La mayoría de apps de presupuesto te dicen lo que gastaste. DailyBudget te dice cuánto puedes gastar hoy.</p>
+    <p class="section-sub lang-en">Most budget apps tell you what you spent. DailyBudget tells you how much you can spend today.</p>
+
+    <div class="problem-grid">
+      <div class="problem-card">
+        <div class="icon">📊</div>
+        <h3 class="lang-es">Las hojas de cálculo son lentas</h3>
+        <h3 class="lang-en">Spreadsheets are too slow</h3>
+        <p class="lang-es">Abrir Excel, buscar la fila, actualizar. Para cuando terminas ya gastaste sin pensar.</p>
+        <p class="lang-en">Open Excel, find the row, update. By the time you're done, you've already spent without thinking.</p>
+      </div>
+      <div class="problem-card">
+        <div class="icon">🔄</div>
+        <h3 class="lang-es">Las apps piden suscripción</h3>
+        <h3 class="lang-en">Apps require a subscription</h3>
+        <p class="lang-es">$8, $12, $15 al mes para controlar tu propio dinero. No tiene sentido.</p>
+        <p class="lang-en">$8, $12, $15 a month to track your own money. That makes no sense.</p>
+      </div>
+      <div class="problem-card">
+        <div class="icon">☁️</div>
+        <h3 class="lang-es">Tus datos en servidores ajenos</h3>
+        <h3 class="lang-en">Your data on someone else's servers</h3>
+        <p class="lang-es">¿Por qué una app de presupuesto necesita saber tu banco, tu correo, tu ubicación?</p>
+        <p class="lang-en">Why does a budget app need your bank info, email, or location?</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="alt" id="como-funciona">
+  <div class="container">
+    <span class="section-label lang-es">Cómo funciona</span>
+    <span class="section-label lang-en">How it works</span>
+
+    <h2 class="section-title lang-es">Simple en 4 pasos</h2>
+    <h2 class="section-title lang-en">Simple in 4 steps</h2>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <h3 class="lang-es">Define tu balance y días</h3>
+        <h3 class="lang-en">Set your balance and days</h3>
+        <p class="lang-es">¿Cuánto tienes y cuántos días hasta el próximo ingreso? Eso es todo.</p>
+        <p class="lang-en">How much do you have and how many days until your next income? That's it.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <h3 class="lang-es">Registra tus gastos del día</h3>
+        <h3 class="lang-en">Log your daily expenses</h3>
+        <p class="lang-es">Concepto, monto, categoría. Tres segundos. La app actualiza todo al instante.</p>
+        <p class="lang-en">Name, amount, category. Three seconds. The app updates everything instantly.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <h3 class="lang-es">Termina el día</h3>
+        <h3 class="lang-en">End the day</h3>
+        <p class="lang-es">Lo que sobró se redistribuye entre los días restantes. Automático.</p>
+        <p class="lang-en">What's left redistributes across remaining days. Automatic.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <h3 class="lang-es">Revisa tu historial</h3>
+        <h3 class="lang-en">Review your history</h3>
+        <p class="lang-es">Ve cuánto gastaste cada día, por categoría, y cuánto te sobró o te faltó.</p>
+        <p class="lang-en">See how much you spent each day, by category, and whether you were over or under.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <span class="section-label lang-es">Lo que incluye</span>
+    <span class="section-label lang-en">What's included</span>
+
+    <h2 class="section-title lang-es">Todo lo que necesitas, nada que no necesitas</h2>
+    <h2 class="section-title lang-en">Everything you need, nothing you don't</h2>
+
+    <div class="features-grid">
+      <div class="feature">
+        <div class="feature-icon">📲</div>
+        <h3 class="lang-es">Instálala en tu celular</h3>
+        <h3 class="lang-en">Install on your phone</h3>
+        <p class="lang-es">Funciona como app nativa en Android e iOS. Ícono en tu pantalla de inicio, sin barra de navegador.</p>
+        <p class="lang-en">Works as a native app on Android and iOS. Icon on your home screen, no browser bar.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">📡</div>
+        <h3 class="lang-es">100% offline</h3>
+        <h3 class="lang-en">100% offline</h3>
+        <p class="lang-es">Sin internet, sin servidor, sin cuenta. Tus datos viven en tu dispositivo y solo en tu dispositivo.</p>
+        <p class="lang-en">No internet, no server, no account. Your data lives on your device and only your device.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">💾</div>
+        <h3 class="lang-es">Exporta e importa tus datos</h3>
+        <h3 class="lang-en">Export and import your data</h3>
+        <p class="lang-es">Descarga un archivo de respaldo cuando quieras. Si cambias de dispositivo, importas y sigues.</p>
+        <p class="lang-en">Download a backup file whenever you want. Switch devices, import, and continue.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">🔄</div>
+        <h3 class="lang-es">Redistribución automática</h3>
+        <h3 class="lang-en">Automatic redistribution</h3>
+        <p class="lang-es">El sobrante de hoy aumenta tu presupuesto de mañana. El déficit lo reduce. Sin cálculos manuales.</p>
+        <p class="lang-en">Today's surplus increases tomorrow's budget. Deficits reduce it. No manual calculations.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">📋</div>
+        <h3 class="lang-es">Categorías e historial</h3>
+        <h3 class="lang-en">Categories and history</h3>
+        <p class="lang-es">12 categorías predefinidas. Resumen por categoría y historial detallado por día.</p>
+        <p class="lang-en">12 preset categories. Summary by category and detailed history by day.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">⚡</div>
+        <h3 class="lang-es">Carga instantánea</h3>
+        <h3 class="lang-en">Instant loading</h3>
+        <p class="lang-es">Sin tiempo de carga, sin splash screen, sin anuncios. Abre y está lista en menos de un segundo.</p>
+        <p class="lang-en">No loading time, no splash screen, no ads. Opens and ready in under a second.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="alt" id="precio">
+  <div class="container" style="text-align:center;">
+    <span class="section-label lang-es">Precio</span>
+    <span class="section-label lang-en">Pricing</span>
+
+    <h2 class="section-title lang-es">Un precio justo, para siempre</h2>
+    <h2 class="section-title lang-en">A fair price, forever</h2>
+
+    <div class="pricing-card">
+      <div class="pricing-badge lang-es">Pago único</div>
+      <div class="pricing-badge lang-en">One-time payment</div>
+
+      <div class="pricing-price">$7</div>
+
+      <p class="pricing-once lang-es">Una vez. Tuyo para siempre.</p>
+      <p class="pricing-once lang-en">Once. Yours forever.</p>
+
+      <ul class="pricing-list lang-es">
+        <li>App completa instalable en celular</li>
+        <li>Funciona offline, sin cuenta</li>
+        <li>Exportar e importar tus datos</li>
+        <li>Redistribución automática del sobrante</li>
+        <li>Instrucciones de instalación incluidas</li>
+        <li>Sin suscripción. Sin anuncios. Sin trucos.</li>
+      </ul>
+
+      <ul class="pricing-list lang-en">
+        <li>Full app installable on mobile</li>
+        <li>Works offline, no account needed</li>
+        <li>Export and import your data</li>
+        <li>Automatic surplus redistribution</li>
+        <li>Installation instructions included</li>
+        <li>No subscription. No ads. No tricks.</li>
+      </ul>
+
+      <a href="https://direrian.gumroad.com/l/xptggu" class="btn-buy lang-es">Obtener DailyBudget →</a>
+      <a href="https://direrian.gumroad.com/l/xptggu" class="btn-buy lang-en">Get DailyBudget →</a>
+
+      <p class="pricing-note lang-es">Pago seguro vía Gumroad · Disponible inmediatamente tras la compra</p>
+      <p class="pricing-note lang-en">Secure payment via Gumroad · Available immediately after purchase</p>
+
+      <p class="pricing-note notice lang-es">Aplicación disponible actualmente solo en español.</p>
+      <p class="pricing-note notice lang-en">App currently available in Spanish only.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <span class="section-label lang-es">Preguntas frecuentes</span>
+    <span class="section-label lang-en">FAQ</span>
+
+    <h2 class="section-title lang-es">Lo que más nos preguntan</h2>
+    <h2 class="section-title lang-en">Common questions</h2>
+
+    <div class="faq-list">
+      <div class="faq-item lang-es">
+        <h3>¿Necesito crear una cuenta?</h3>
+        <p>No. La app no tiene cuenta, no tiene login, no tiene servidor. Tus datos están en tu dispositivo.</p>
+      </div>
+      <div class="faq-item lang-en">
+        <h3>Do I need to create an account?</h3>
+        <p>No. The app has no account, no login, no server. Your data stays on your device.</p>
+      </div>
+
+      <div class="faq-item lang-es">
+        <h3>¿Funciona en iPhone y Android?</h3>
+        <p>Sí. En Android se instala desde Chrome. En iPhone desde Safari con "Añadir a pantalla de inicio". Las instrucciones vienen incluidas con la compra.</p>
+      </div>
+      <div class="faq-item lang-en">
+        <h3>Does it work on iPhone and Android?</h3>
+        <p>Yes. On Android, install from Chrome. On iPhone, use Safari's "Add to Home Screen". Instructions are included with your purchase.</p>
+      </div>
+
+      <div class="faq-item lang-es">
+        <h3>¿Qué pasa si pierdo mis datos?</h3>
+        <p>La app tiene exportación de datos con un toque. Guarda ese archivo y puedes restaurar todo en cualquier dispositivo.</p>
+      </div>
+      <div class="faq-item lang-en">
+        <h3>What if I lose my data?</h3>
+        <p>The app has one-tap data export. Save that file and you can restore everything on any device.</p>
+      </div>
+
+      <div class="faq-item lang-es">
+        <h3>¿Qué recibo exactamente al comprar?</h3>
+        <p>Un archivo ZIP con la app lista para instalar e instrucciones paso a paso para Android e iOS.</p>
+      </div>
+      <div class="faq-item lang-en">
+        <h3>What exactly do I get when I buy?</h3>
+        <p>A ZIP file with the ready-to-install app and step-by-step instructions for Android and iOS.</p>
+      </div>
+
+      <div class="faq-item lang-es">
+        <h3>¿Hay reembolsos?</h3>
+        <p>Si la app no funciona en tu dispositivo, escríbeme y lo resolvemos. Quiero que funcione para ti.</p>
+      </div>
+      <div class="faq-item lang-en">
+        <h3>Are there refunds?</h3>
+        <p>If the app doesn't work on your device, reach out and we'll sort it out. I want it to work for you.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="final-cta">
+  <div class="container">
+    <h2 class="section-title lang-es" style="color:white;margin-bottom:14px;">Empieza a controlar tu dinero hoy</h2>
+    <h2 class="section-title lang-en" style="color:white;margin-bottom:14px;">Start controlling your money today</h2>
+    <p class="final-cta-copy lang-es">$7 una sola vez. Sin sorpresas. Sin suscripciones.</p>
+    <p class="final-cta-copy lang-en">$7 once. No surprises. No subscriptions.</p>
+    <a href="https://direrian.gumroad.com/l/xptggu" class="btn-primary lang-es">Obtener DailyBudget — $7 →</a>
+    <a href="https://direrian.gumroad.com/l/xptggu" class="btn-primary lang-en">Get DailyBudget — $7 →</a>
+  </div>
+</section>
+
+<footer>
+  <p class="lang-es">Hecho por <strong>Ricardo</strong> · DailyBudget · <a href="https://direrian.gumroad.com/l/xptggu">Comprar</a></p>
+  <p class="lang-en">Made by <strong>Ricardo</strong> · DailyBudget · <a href="https://direrian.gumroad.com/l/xptggu">Buy</a></p>
+</footer>
+
+<script>
+  function setLang(lang) {
+    document.documentElement.lang = lang;
+    document.getElementById('btn-es').classList.toggle('active', lang === 'es');
+    document.getElementById('btn-en').classList.toggle('active', lang === 'en');
+    localStorage.setItem('db_lang', lang);
+  }
+
+  (function () {
+    var saved = localStorage.getItem('db_lang');
+    if (saved === 'es' || saved === 'en') { setLang(saved); return; }
+    var browser = (navigator.language || 'es').slice(0, 2);
+    setLang(browser === 'en' ? 'en' : 'es');
+  })();
+</script>
 
-    <!-- Toast Component -->
-    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-6 py-3 rounded-2xl shadow-2xl text-sm font-medium opacity-0 transition-opacity pointer-events-none z-50"></div>
-
-    <script>
-        let state = {
-            isInitialized: false,
-            periodName: '',
-            startDate: '',
-            initialDays: 0,
-            totalBalance: 0,
-            daysLeft: 0,
-            dailyBudget: 0,
-            expenses: []
-        };
-
-        const STORAGE_KEY = 'daily_budget_pro_v5';
-        const toCents = (val) => Math.round(parseFloat(val || 0) * 100);
-        const formatCurrency = (cents) => `$${(cents / 100).toFixed(2)}`;
-
-        // FIX #6: Variable para el timeout del toast.
-        // Antes, dos toasts rápidos se solapaban porque el primer setTimeout
-        // apagaba el segundo toast antes de que terminara de mostrarse.
-        let toastTimeout = null;
-
-        function resetApp() {
-            state = {
-                isInitialized: false,
-                periodName: '',
-                startDate: '',
-                initialDays: 0,
-                totalBalance: 0,
-                daysLeft: 0,
-                dailyBudget: 0,
-                expenses: []
-            };
-            localStorage.removeItem(STORAGE_KEY);
-            
-            document.getElementById('adjustment-modal').classList.add('hidden');
-            document.getElementById('init-period-name').value = '';
-            document.getElementById('init-total-balance').value = '';
-            document.getElementById('init-total-days').value = '';
-            document.getElementById('expense-name').value = '';
-            document.getElementById('expense-amount').value = '';
-            
-            render();
-            showToast('Aplicación reiniciada');
-        }
-
-        function initializeBudget() {
-            const balInput = document.getElementById('init-total-balance').value;
-            const daysInput = document.getElementById('init-total-days').value;
-            const nameInput = document.getElementById('init-period-name').value.trim();
-            const balCents = toCents(balInput);
-            const days = parseInt(daysInput);
-
-            if (balCents <= 0 || isNaN(days) || days <= 0) return showToast('Valores inválidos');
-
-            state.totalBalance = balCents;
-            state.initialDays = days;
-            state.daysLeft = days;
-            state.dailyBudget = Math.round(balCents / days);
-            state.periodName = nameInput || 'Periodo';
-            state.startDate = new Date().toLocaleDateString('es-PR', { day: 'numeric', month: 'short', year: 'numeric' });
-            state.isInitialized = true;
-            save(); render();
-        }
-
-        function addExpense() {
-            const nameEl = document.getElementById('expense-name');
-            const amountEl = document.getElementById('expense-amount');
-            const catEl = document.getElementById('expense-category');
-            const amountCents = toCents(amountEl.value);
-
-            if (amountCents <= 0 || isNaN(amountCents)) return showToast('Monto inválido');
-
-            state.expenses.unshift({
-                id: Date.now(),
-                name: nameEl.value.trim() || 'Gasto',
-                category: catEl.value,
-                amount: amountCents,
-                timestamp: new Date().toISOString(),
-                dayIndex: state.daysLeft,
-                originalDailyBudget: state.dailyBudget
-            });
-
-            state.totalBalance -= amountCents;
-            nameEl.value = '';
-            amountEl.value = '';
-            
-            save(); render();
-        }
-
-        // FIX #8: Eliminar gasto del día actual.
-        // Solo se permite borrar gastos del día activo (dayIndex === daysLeft).
-        // Al eliminar, se revierte el monto al totalBalance y se recalcula.
-        function deleteExpense(id) {
-            const idx = state.expenses.findIndex(e => e.id === id);
-            if (idx === -1) return;
-
-            const expense = state.expenses[idx];
-
-            // Solo permite eliminar gastos del día activo para no corromper
-            // el historial de días ya cerrados.
-            if (expense.dayIndex !== state.daysLeft) return;
-
-            state.totalBalance += expense.amount;
-            state.expenses.splice(idx, 1);
-
-            save(); render();
-            showToast('Gasto eliminado');
-        }
-
-        function openAdjustmentModal() {
-            const sel = document.getElementById('adj-day'); sel.innerHTML = '';
-            for (let i = state.initialDays; i >= state.daysLeft; i--) {
-                const opt = document.createElement('option');
-                opt.value = i; opt.innerText = `Día ${i}${i===state.daysLeft?' (Hoy)':''}`;
-                sel.appendChild(opt);
-            }
-            document.getElementById('adjustment-modal').classList.remove('hidden');
-        }
-
-        function closeAdjustmentModal() {
-            document.getElementById('adjustment-modal').classList.add('hidden');
-        }
-
-        function saveAdjustment() {
-            const dayIdx = parseInt(document.getElementById('adj-day').value);
-            const amount = toCents(document.getElementById('adj-amount').value);
-            const nameVal = document.getElementById('adj-name').value.trim();
-            // FIX #3: Leer la categoría del selector del modal en lugar de hardcodear 'Otros'.
-            const categoryVal = document.getElementById('adj-category').value;
-
-            if (amount <= 0) return showToast('Monto inválido');
-
-            state.expenses.push({
-                id: Date.now(),
-                name: nameVal || 'Ajuste',
-                category: categoryVal,
-                amount: amount,
-                timestamp: new Date().toISOString(),
-                dayIndex: dayIdx,
-                originalDailyBudget: state.dailyBudget
-            });
-
-            state.totalBalance -= amount;
-            closeAdjustmentModal(); save(); render();
-        }
-
-        function finishDay() {
-            if (state.daysLeft <= 0) return;
-            // Mostrar modal de confirmación en lugar de ejecutar directamente.
-            document.getElementById('confirm-modal').classList.remove('hidden');
-        }
-
-        function confirmFinishDay() {
-            document.getElementById('confirm-modal').classList.add('hidden');
-            if (state.daysLeft <= 0) return;
-
-            const todayEx = state.expenses.filter(e => e.dayIndex === state.daysLeft);
-            const spent = todayEx.reduce((acc, c) => acc + c.amount, 0);
-            const leftover = state.dailyBudget - spent;
-
-            if (state.daysLeft === 1) {
-                state.daysLeft = 0;
-                state.dailyBudget = 0;
-            } else {
-                state.daysLeft -= 1;
-                // FIX #2: Math.round en lugar de Math.floor (mismo criterio que initializeBudget).
-                state.dailyBudget = Math.round(state.totalBalance / state.daysLeft);
-            }
-
-            save(); render();
-
-            // Mostrar cuánto se redistribuye al día siguiente, positivo o negativo.
-            if (state.daysLeft > 0) {
-                const sign = leftover >= 0 ? '+' : '';
-                showToast(`Día finalizado. ${sign}${formatCurrency(leftover)} al siguiente día`);
-            } else {
-                showToast('Periodo completado');
-            }
-        }
-
-        function render() {
-            if (!state.isInitialized) {
-                document.getElementById('setup-section').classList.remove('hidden-section');
-                document.getElementById('main-section').classList.add('hidden-section');
-                return;
-            }
-            document.getElementById('setup-section').classList.add('hidden-section');
-            document.getElementById('main-section').classList.remove('hidden-section');
-
-            // Mostrar/ocultar botón exportar del header según si hay datos activos
-            document.getElementById('btn-export').classList.toggle('hidden', !state.isInitialized);
-
-            const isCompleted = state.daysLeft === 0;
-            document.getElementById('status-card').classList.toggle('hidden', isCompleted);
-            document.getElementById('completed-card').classList.toggle('hidden', !isCompleted);
-            document.getElementById('input-area').classList.toggle('hidden-section', isCompleted);
-            document.getElementById('btn-finish-day').classList.toggle('hidden-section', isCompleted);
-
-            if (isCompleted) {
-                document.getElementById('display-completed-remaining').innerText = formatCurrency(state.totalBalance);
-                const nameEl = document.getElementById('display-completed-name');
-                nameEl.textContent = state.periodName || '';
-                nameEl.classList.toggle('hidden', !state.periodName);
-            }
-
-            // Nombre y fecha de inicio en la tarjeta principal
-            const periodNameEl = document.getElementById('display-period-name');
-            const periodDateEl = document.getElementById('display-period-date');
-            const periodMetaEl = document.getElementById('display-period-meta');
-            periodNameEl.textContent = state.periodName || '';
-            periodDateEl.textContent = state.startDate ? `Inicio: ${state.startDate}` : '';
-            // Ocultar la fila de meta si no hay ni nombre ni fecha (periodos creados antes de esta versión)
-            periodMetaEl.classList.toggle('hidden', !state.periodName && !state.startDate);
-
-            const todayEx = state.expenses.filter(e => e.dayIndex === state.daysLeft);
-            const spent = todayEx.reduce((acc, c) => acc + c.amount, 0);
-            const avail = state.dailyBudget - spent;
-
-            document.getElementById('display-daily-budget').innerText = formatCurrency(state.dailyBudget);
-            document.getElementById('display-daily-spent').innerText = formatCurrency(spent);
-            document.getElementById('display-daily-available').innerText = formatCurrency(avail);
-            document.getElementById('display-days-left').innerText = state.daysLeft;
-            document.getElementById('display-total-remaining').innerText = formatCurrency(state.totalBalance);
-
-            // Color en negativo: cambia el fondo de la tarjeta y el color del monto disponible
-            // cuando el usuario ha gastado más de su presupuesto diario.
-            const isNegative = avail < 0;
-            document.getElementById('status-card').classList.toggle('is-negative', isNegative);
-            document.getElementById('display-daily-available').classList.toggle('is-negative', isNegative);
-
-            // Gastos de hoy
-            // FIX #1 (XSS): Los datos del usuario (ex.name, ex.category) se asignan
-            // con textContent en lugar de interpolarse en innerHTML.
-            // Antes: div.innerHTML = `...<span>${ex.name}</span>...` permitía inyección HTML.
-            const list = document.getElementById('expense-list');
-            list.innerHTML = '';
-
-            if (todayEx.length === 0) {
-                const empty = document.createElement('div');
-                empty.className = 'bg-white/50 border-2 border-dashed border-slate-200 rounded-3xl p-6 text-center text-slate-400 text-sm italic';
-                empty.textContent = 'Sin gastos registrados hoy';
-                list.appendChild(empty);
-            } else {
-                todayEx.forEach(ex => {
-                    const div = document.createElement('div');
-                    div.className = 'bg-white p-4 rounded-2xl shadow-sm flex justify-between items-center gap-3';
-
-                    // Columna izquierda: nombre y categoría (datos del usuario → textContent)
-                    const info = document.createElement('div');
-                    info.className = 'flex flex-col flex-grow min-w-0';
-
-                    const nameSpan = document.createElement('span');
-                    nameSpan.className = 'text-sm font-bold text-slate-800 truncate';
-                    nameSpan.textContent = ex.name;
-
-                    const catSpan = document.createElement('span');
-                    catSpan.className = 'text-[10px] text-slate-400 font-bold uppercase tracking-tight';
-                    catSpan.textContent = ex.category;
-
-                    info.appendChild(nameSpan);
-                    info.appendChild(catSpan);
-
-                    // Columna derecha: monto (viene de centavos numéricos, es seguro)
-                    const amountSpan = document.createElement('span');
-                    amountSpan.className = 'text-sm font-extrabold text-slate-800 shrink-0';
-                    amountSpan.textContent = `-${formatCurrency(ex.amount)}`;
-
-                    // FIX #8: Botón de eliminar solo para gastos del día activo.
-                    const deleteBtn = document.createElement('button');
-                    deleteBtn.className = 'text-slate-300 hover:text-red-400 shrink-0 p-1 transition-colors';
-                    deleteBtn.setAttribute('aria-label', 'Eliminar gasto');
-                    deleteBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>';
-                    deleteBtn.addEventListener('click', () => deleteExpense(ex.id));
-
-                    div.appendChild(info);
-                    div.appendChild(amountSpan);
-                    div.appendChild(deleteBtn);
-                    list.appendChild(div);
-                });
-            }
-
-            // FIX #7: Resumen del Periodo (antes "Resumen Semanal").
-            // El filtro anterior usaba fecha real (new Date() - 7 días), que no tiene
-            // relación con los "días" de la app. Un usuario puede completar 7 días
-            // de la app en 2 días calendario o en 14. Ahora se filtran todos los
-            // gastos del periodo actual sin restricción de fechas reales.
-            const periodEx = state.expenses;
-            const periodTotal = periodEx.reduce((acc, c) => acc + c.amount, 0);
-            document.getElementById('weekly-total').innerText = formatCurrency(periodTotal);
-
-            const weeklyList = document.getElementById('weekly-category-list');
-            weeklyList.innerHTML = '';
-            const catMap = {};
-            periodEx.forEach(ex => {
-                catMap[ex.category] = (catMap[ex.category] || 0) + ex.amount;
-            });
-
-            if (Object.keys(catMap).length === 0) {
-                const empty = document.createElement('p');
-                empty.className = 'text-xs text-slate-400 italic text-center py-2';
-                empty.textContent = 'Sin gastos registrados aún';
-                weeklyList.appendChild(empty);
-            } else {
-                Object.entries(catMap).sort((a, b) => b[1] - a[1]).forEach(([cat, total]) => {
-                    const div = document.createElement('div');
-                    div.className = 'flex justify-between items-center text-xs py-1 border-b border-slate-50 last:border-0';
-
-                    // FIX #1 (XSS): categorías vienen del select controlado (valores fijos),
-                    // pero se asignan con textContent por consistencia y seguridad.
-                    const catSpan = document.createElement('span');
-                    catSpan.className = 'font-semibold text-slate-600';
-                    catSpan.textContent = cat;
-
-                    const totalSpan = document.createElement('span');
-                    totalSpan.className = 'font-bold text-slate-800';
-                    totalSpan.textContent = formatCurrency(total);
-
-                    div.appendChild(catSpan);
-                    div.appendChild(totalSpan);
-                    weeklyList.appendChild(div);
-                });
-            }
-
-            // Historial de días cerrados
-            // FIX #1 (XSS): Los labels del historial son valores numéricos o de formatCurrency,
-            // no datos del usuario, así que innerHTML sigue siendo seguro aquí.
-            // Se deja como estaba porque no hay interpolación de input del usuario.
-            const historyList = document.getElementById('history-list');
-            historyList.innerHTML = '';
-            const historyData = {};
-            state.expenses.forEach(ex => {
-                if (ex.dayIndex > state.daysLeft) {
-                    if (!historyData[ex.dayIndex]) {
-                        historyData[ex.dayIndex] = { spent: 0, budget: ex.originalDailyBudget };
-                    }
-                    historyData[ex.dayIndex].spent += ex.amount;
-                }
-            });
-
-            if (Object.keys(historyData).length === 0) {
-                const empty = document.createElement('div');
-                empty.className = 'text-xs text-slate-400 italic text-center py-4';
-                empty.textContent = 'Aún no hay días cerrados';
-                historyList.appendChild(empty);
-            } else {
-                Object.entries(historyData).sort((a, b) => b[0] - a[0]).forEach(([idx, data]) => {
-                    const diff = data.budget - data.spent;
-                    const card = document.createElement('div');
-                    card.className = 'bg-white p-4 rounded-2xl shadow-sm space-y-2';
-                    // Solo datos numéricos controlados aquí, sin input del usuario.
-                    card.innerHTML = `
-                        <div class="flex justify-between items-center">
-                            <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Día ${idx}</span>
-                            <span class="text-xs font-bold ${diff >= 0 ? 'text-green-500' : 'text-red-500'}">${formatCurrency(diff)}</span>
-                        </div>
-                        <div class="flex justify-between text-xs">
-                            <span class="text-slate-500">Gastado: ${formatCurrency(data.spent)}</span>
-                            <span class="text-slate-500 font-semibold">Base: ${formatCurrency(data.budget)}</span>
-                        </div>
-                    `;
-                    historyList.appendChild(card);
-                });
-            }
-        }
-
-        // EXPORT: genera un archivo JSON descargable con todo el state actual.
-        // El usuario guarda este archivo como respaldo personal.
-        // No depende de ningún servidor — es un archivo local del usuario.
-        function exportData() {
-            const periodLabel = state.periodName || 'periodo';
-            const dateStr = new Date().toISOString().slice(0, 10);
-            const filename = `dailybudget-${periodLabel.replace(/\s+/g, '-').toLowerCase()}-${dateStr}.json`;
-            const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            a.click();
-            URL.revokeObjectURL(url);
-            showToast('Archivo exportado');
-        }
-
-        // IMPORT: carga un archivo JSON previamente exportado.
-        // Reemplaza el state completo. Valida que tenga la estructura mínima esperada.
-        function importData(file) {
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                try {
-                    const parsed = JSON.parse(e.target.result);
-                    // Validación mínima: debe tener los campos críticos del state
-                    if (typeof parsed.isInitialized !== 'boolean' || !Array.isArray(parsed.expenses)) {
-                        return showToast('Archivo inválido o corrupto');
-                    }
-                    state = parsed;
-                    save();
-                    render();
-                    showToast('Datos importados correctamente');
-                } catch (err) {
-                    showToast('Error al leer el archivo');
-                }
-            };
-            reader.readAsText(file);
-        }
-
-        function save() {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-        }
-
-        // FIX #6: Toast interruptible.
-        // Antes, si se disparaban dos toasts en menos de 2.5s, el primer timeout
-        // apagaba el segundo mensaje antes de que el usuario pudiera leerlo.
-        function showToast(m) {
-            const t = document.getElementById('toast');
-            if (toastTimeout) clearTimeout(toastTimeout);
-            t.textContent = m;
-            t.style.opacity = '1';
-            toastTimeout = setTimeout(() => {
-                t.style.opacity = '0';
-                toastTimeout = null;
-            }, 2500);
-        }
-
-        window.addEventListener('DOMContentLoaded', () => {
-            const saved = localStorage.getItem(STORAGE_KEY);
-            if (saved) {
-                try {
-                    state = JSON.parse(saved);
-                } catch (e) {
-                    localStorage.removeItem(STORAGE_KEY);
-                }
-            }
-            
-            document.getElementById('btn-reset-app').addEventListener('click', resetApp);
-            document.getElementById('btn-guide').addEventListener('click', () => {
-                document.getElementById('guide-modal').classList.remove('hidden');
-            });
-            document.getElementById('btn-guide-close').addEventListener('click', () => {
-                document.getElementById('guide-modal').classList.add('hidden');
-            });
-            document.getElementById('confirm-ok').addEventListener('click', confirmFinishDay);
-            document.getElementById('confirm-cancel').addEventListener('click', () => {
-                document.getElementById('confirm-modal').classList.add('hidden');
-            });
-
-            // Exportar desde el header (visible cuando hay un periodo activo)
-            document.getElementById('btn-export').addEventListener('click', exportData);
-
-            // Exportar desde la tarjeta de periodo completado
-            document.getElementById('btn-export-completed').addEventListener('click', exportData);
-
-            // Iniciar nuevo periodo desde la tarjeta de completado
-            // Exporta automáticamente y luego reinicia, para que el usuario
-            // no pierda datos sin querer.
-            document.getElementById('btn-new-period').addEventListener('click', () => {
-                exportData();
-                setTimeout(() => {
-                    resetApp();
-                    showToast('Listo para nuevo periodo');
-                }, 300);
-            });
-
-            // Importar: el botón dispara el input[file] oculto
-            document.getElementById('btn-import').addEventListener('click', () => {
-                document.getElementById('import-file-input').click();
-            });
-            document.getElementById('import-file-input').addEventListener('change', (e) => {
-                importData(e.target.files[0]);
-                e.target.value = ''; // permite reimportar el mismo archivo si hace falta
-            });
-
-            render();
-        });
-
-        // ── PWA: Registro del Service Worker ──────────
-        // Se registra después del DOMContentLoaded para no bloquear
-        // el render inicial. Solo actúa si el navegador lo soporta.
-        // No toca ninguna lógica existente — es completamente independiente.
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js').catch(() => {
-                    // Si falla el registro (ej. archivo no encontrado en desarrollo),
-                    // la app sigue funcionando con normalidad — el SW es una mejora
-                    // progresiva, no un requisito.
-                });
-            });
-        }
-    </script>
 </body>
 </html>
