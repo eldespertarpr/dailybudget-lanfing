@@ -1,1 +1,1 @@
-# dailybudget-lanfing
+# dailybudget-landing
