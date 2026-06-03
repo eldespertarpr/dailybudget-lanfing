@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DailyBudget — Nunca más te quedes a cero antes de fin de mes</title>
+  <meta name="description" content="DailyBudget divide tu dinero entre los días que quedan, protege tus pagos y te dice cuánto puedes gastar hoy. Pago único $7. Sin cuenta ni suscripción."/>
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website"/>
+  <meta property="og:url" content="https://eldespertarpr.github.io/dailybudget-lanfing/"/>
+  <meta property="og:title" content="DailyBudget — Nunca más te quedes a cero antes de fin de mes"/>
+  <meta property="og:description" content="Sabe exactamente cuánto puedes gastar hoy. Protege tus pagos fijos. Pago único de $7, sin cuenta ni suscripción."/>
+  <meta property="og:image" content="https://eldespertarpr.github.io/dailybudget-lanfing/cover-dailybudget.png"/>
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image"/>
+  <meta name="twitter:title" content="DailyBudget — Nunca más te quedes a cero"/>
+  <meta name="twitter:description" content="Sabe cuánto puedes gastar hoy. Pago único $7."/>
+  <meta name="twitter:image" content="https://eldespertarpr.github.io/dailybudget-lanfing/cover-dailybudget.png"/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0e0e0e;
+      --surface: #161616;
+      --card: #1c1c1c;
+      --border: #2a2a2a;
+      --accent: #c8f135;
+      --accent2: #f1c835;
+      --text: #f0ede6;
+      --muted: #aaa;
+      --red: #ff4d4d;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* NAV */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 32px;
+      background: rgba(14,14,14,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800; font-size: 1.1rem;
+      color: var(--accent);
+      letter-spacing: -0.02em;
+    }
+    .nav-cta {
+      background: var(--accent);
+      color: #0e0e0e;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 0.85rem;
+      padding: 10px 20px;
+      border-radius: 100px;
+      text-decoration: none;
+      transition: transform 0.15s, box-shadow 0.15s;
+      white-space: nowrap;
+    }
+    .nav-cta:hover { transform: scale(1.04); box-shadow: 0 0 20px rgba(200,241,53,0.3); }
+
+    /* HERO */
+    .hero {
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      justify-content: center; align-items: center;
+      text-align: center;
+      padding: 120px 24px 80px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse 70% 60% at 50% 40%, rgba(200,241,53,0.07) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 6px 16px;
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-bottom: 32px;
+      animation: fadeUp 0.6s ease both;
+    }
+    .hero-badge span { color: var(--accent); font-weight: 600; }
+
+    h1 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: clamp(2.4rem, 7vw, 5.5rem);
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+      max-width: 820px;
+      animation: fadeUp 0.6s 0.1s ease both;
+    }
+    h1 em {
+      font-style: normal;
+      color: var(--accent);
+    }
+    .hero-sub {
+      font-size: clamp(1rem, 2.2vw, 1.2rem);
+      color: #c0c0c0;
+      max-width: 520px;
+      margin: 24px auto 0;
+      font-weight: 300;
+      animation: fadeUp 0.6s 0.2s ease both;
+    }
+
+    .hero-actions {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 12px;
+      margin-top: 48px;
+      animation: fadeUp 0.6s 0.3s ease both;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #0e0e0e;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 1.05rem;
+      padding: 18px 40px;
+      border-radius: 100px;
+      text-decoration: none;
+      transition: transform 0.15s, box-shadow 0.2s;
+      display: inline-block;
+      white-space: nowrap;
+    }
+    .btn-primary:hover { transform: scale(1.04); box-shadow: 0 0 30px rgba(200,241,53,0.35); }
+
+    .hero-guarantee {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+    .hero-guarantee strong { color: var(--text); }
+
+    .hero-stats {
+      display: flex; gap: 40px;
+      margin-top: 64px;
+      animation: fadeUp 0.6s 0.4s ease both;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .stat { text-align: center; }
+    .stat-num {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.8rem;
+      color: var(--accent);
+    }
+    .stat-label { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+
+    /* PAIN SECTION */
+    .section { padding: 100px 24px; max-width: 1000px; margin: 0 auto; }
+
+    .section-label {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.72rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 16px;
+    }
+
+    h2 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: clamp(1.8rem, 4vw, 3rem);
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+    }
+
+    .pain-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+      margin-top: 48px;
+    }
+    .pain-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    .pain-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--red), transparent);
+    }
+    .pain-icon { font-size: 1.5rem; margin-bottom: 12px; }
+    .pain-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1rem; margin-bottom: 8px; }
+    .pain-desc { font-size: 0.88rem; color: #b0b0b0; line-height: 1.55; }
+
+    /* FOR WHO */
+    .who-section { padding: 80px 24px; background: var(--surface); }
+    .who-inner { max-width: 1000px; margin: 0 auto; }
+    .who-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin-top: 48px;
+    }
+    .who-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px 24px;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .who-card:hover { border-color: var(--accent); transform: translateY(-3px); }
+    .who-avatar { font-size: 2rem; margin-bottom: 12px; }
+    .who-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1rem; margin-bottom: 6px; }
+    .who-desc { font-size: 0.85rem; color: #b0b0b0; line-height: 1.5; }
+
+    /* HOW IT WORKS */
+    .steps { margin-top: 56px; display: flex; flex-direction: column; gap: 0; }
+    .step {
+      display: grid;
+      grid-template-columns: 56px 1fr;
+      gap: 24px;
+      align-items: flex-start;
+      padding: 28px 0;
+      border-bottom: 1px solid var(--border);
+      position: relative;
+    }
+    .step:last-child { border-bottom: none; }
+    .step-num {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 2.4rem;
+      color: var(--border);
+      line-height: 1;
+      padding-top: 4px;
+    }
+    .step-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.1rem; margin-bottom: 6px; }
+    .step-desc { font-size: 0.88rem; color: #b0b0b0; line-height: 1.6; }
+    .step-accent { color: var(--accent); }
+
+    /* FEATURES */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin-top: 48px;
+    }
+    .feat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px 24px;
+      transition: border-color 0.2s;
+    }
+    .feat-card:hover { border-color: rgba(200,241,53,0.3); }
+    .feat-icon { font-size: 1.4rem; margin-bottom: 14px; }
+    .feat-title { font-family: 'Syne', sans-serif; font-weight: 700; margin-bottom: 8px; }
+    .feat-desc { font-size: 0.86rem; color: #b0b0b0; line-height: 1.55; }
+
+    /* TESTIMONIALS */
+    .testimonials-section { padding: 80px 24px; background: var(--surface); }
+    .testimonials-inner { max-width: 1000px; margin: 0 auto; }
+    .testi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin-top: 48px;
+    }
+    .testi-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px 24px;
+    }
+    .testi-stars { color: var(--accent2); font-size: 0.9rem; margin-bottom: 14px; letter-spacing: 2px; }
+    .testi-quote { font-size: 0.92rem; line-height: 1.65; margin-bottom: 20px; color: #d8d8d8; }
+    .testi-quote strong { color: var(--text); }
+    .testi-author { display: flex; align-items: center; gap: 10px; }
+    .testi-avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: var(--card);
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem;
+    }
+    .testi-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.85rem; }
+    .testi-role { font-size: 0.75rem; color: var(--muted); }
+
+    /* PRICING */
+    .pricing-section { padding: 100px 24px; }
+    .pricing-inner { max-width: 560px; margin: 0 auto; text-align: center; }
+    .price-card {
+      background: var(--card);
+      border: 2px solid var(--accent);
+      border-radius: 24px;
+      padding: 48px 40px;
+      margin-top: 48px;
+      position: relative;
+      overflow: hidden;
+    }
+    .price-card::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(200,241,53,0.07) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .price-tag {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 4.5rem;
+      letter-spacing: -0.05em;
+      color: var(--accent);
+      line-height: 1;
+    }
+    .price-tag sup { font-size: 1.8rem; vertical-align: top; margin-top: 10px; }
+    .price-desc { color: #b0b0b0; font-size: 0.9rem; margin-top: 8px; }
+    .price-features {
+      list-style: none;
+      margin: 32px 0;
+      display: flex; flex-direction: column; gap: 12px;
+      text-align: left;
+    }
+    .price-features li {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 0.9rem; color: #d8d8d8;
+    }
+    .price-features li::before {
+      content: '✓';
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 0.85rem;
+      min-width: 18px;
+    }
+    .btn-buy {
+      display: block;
+      background: var(--accent);
+      color: #0e0e0e;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 1.1rem;
+      padding: 20px;
+      border-radius: 14px;
+      text-decoration: none;
+      transition: transform 0.15s, box-shadow 0.2s;
+      margin-top: 8px;
+    }
+    .btn-buy:hover { transform: scale(1.02); box-shadow: 0 0 30px rgba(200,241,53,0.3); }
+    .price-guarantee {
+      margin-top: 20px;
+      font-size: 0.78rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    .price-urgency {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(255,77,77,0.12);
+      border: 1px solid rgba(255,77,77,0.25);
+      color: var(--red);
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 100px;
+      margin-bottom: 32px;
+    }
+
+    /* FAQ */
+    .faq-section { padding: 80px 24px; background: var(--surface); }
+    .faq-inner { max-width: 680px; margin: 0 auto; }
+    .faq-list { margin-top: 48px; display: flex; flex-direction: column; gap: 0; }
+    .faq-item {
+      border-bottom: 1px solid var(--border);
+      overflow: hidden;
+    }
+    .faq-q {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 22px 0;
+      cursor: pointer;
+      font-family: 'Syne', sans-serif;
+      font-weight: 600;
+      font-size: 0.95rem;
+      gap: 16px;
+      user-select: none;
+    }
+    .faq-q:hover { color: var(--accent); }
+    .faq-icon { min-width: 20px; color: var(--muted); font-size: 1.2rem; transition: transform 0.25s; }
+    .faq-a {
+      max-height: 0; overflow: hidden;
+      font-size: 0.88rem; color: #b0b0b0; line-height: 1.65;
+      transition: max-height 0.3s ease, padding 0.3s ease;
+    }
+    .faq-item.open .faq-a { max-height: 200px; padding-bottom: 20px; }
+    .faq-item.open .faq-icon { transform: rotate(45deg); color: var(--accent); }
+
+    /* FOOTER CTA */
+    .final-cta {
+      padding: 100px 24px;
+      text-align: center;
+      background: var(--bg);
+      position: relative;
+      overflow: hidden;
+    }
+    .final-cta::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse 60% 60% at 50% 100%, rgba(200,241,53,0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .final-cta h2 { margin: 0 auto; max-width: 640px; }
+    .final-cta p { color: #b0b0b0; margin: 20px auto 0; max-width: 440px; font-size: 0.95rem; }
+    .final-cta .btn-primary { margin-top: 40px; font-size: 1.1rem; padding: 20px 48px; }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 28px 24px;
+      text-align: center;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+    footer a { color: var(--muted); }
+
+    /* DIVIDER */
+    .divider {
+      width: 40px; height: 3px;
+      background: var(--accent);
+      border-radius: 2px;
+      margin: 16px 0 0;
+    }
+
+    /* ANIMATIONS */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .reveal {
+      opacity: 0; transform: translateY(24px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* MOBILE */
+    @media (max-width: 600px) {
+      nav { padding: 14px 16px; }
+      .nav-logo { font-size: 1rem; }
+      .nav-cta { font-size: 0.78rem; padding: 9px 14px; }
+
+      .hero { padding: 96px 20px 56px; }
+      .hero-badge { font-size: 0.72rem; padding: 5px 14px; }
+      h1 { font-size: clamp(2.2rem, 11vw, 3rem); }
+      .hero-sub { font-size: 0.95rem; margin-top: 18px; }
+
+      /* Fix: button in one line on mobile */
+      .hero-actions { width: 100%; }
+      .btn-primary {
+        width: 100%;
+        text-align: center;
+        font-size: 1rem;
+        padding: 18px 20px;
+        white-space: nowrap;
+        border-radius: 14px;
+      }
+      .final-cta .btn-primary { width: 100%; border-radius: 14px; padding: 18px 20px; }
+
+      .hero-stats { gap: 20px; margin-top: 44px; }
+      .stat-num { font-size: 1.5rem; }
+
+      h2 { font-size: clamp(1.5rem, 7vw, 1.9rem); }
+      .section { padding: 64px 20px; }
+
+      .pain-grid { grid-template-columns: 1fr; }
+      .who-grid { grid-template-columns: 1fr; }
+      .features-grid { grid-template-columns: 1fr; }
+      .testi-grid { grid-template-columns: 1fr; }
+
+      .price-card { padding: 32px 20px; }
+      .price-tag { font-size: 3.5rem; }
+      .btn-buy { font-size: 1rem; padding: 18px; border-radius: 12px; }
+
+      .who-section { padding: 64px 20px; }
+      .testimonials-section { padding: 64px 20px; }
+      .faq-section { padding: 64px 20px; }
+      .final-cta { padding: 72px 20px; }
+      .pricing-section { padding: 72px 20px; }
+
+      .step { grid-template-columns: 44px 1fr; gap: 16px; }
+      .step-num { font-size: 2rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">DailyBudget</div>
+  <a href="https://direrian.gumroad.com/l/xptggu" class="nav-cta">Obtener por $7 →</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge">
+    💰 Pago único · Sin suscripción · Sin cuenta
+  </div>
+  <h1>Nunca más te<br/>quedes a <em>cero</em><br/>antes de fin de mes.</h1>
+  <p class="hero-sub">
+    DailyBudget divide tu dinero entre los días que quedan, protege tus pagos importantes y te dice exactamente cuánto puedes gastar hoy — en segundos.
+  </p>
+  <div class="hero-actions">
+    <a href="https://direrian.gumroad.com/l/xptggu" class="btn-primary">
+      Controlar mi dinero ahora — $7 →
+    </a>
+    <p class="hero-guarantee">
+      <strong>Pago único de $7.</strong> Tuya para siempre. Sin sorpresas.
+    </p>
+  </div>
+  <div class="hero-stats">
+    <div class="stat">
+      <div class="stat-num">$7</div>
+      <div class="stat-label">Pago único, para siempre</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">0</div>
+      <div class="stat-label">Cuentas ni suscripciones</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">30 seg</div>
+      <div class="stat-label">Para configurar y usar</div>
+    </div>
+  </div>
+</section>
+
+<!-- PAIN -->
+<section class="section reveal">
+  <div class="section-label">¿Te suena familiar?</div>
+  <h2>El problema que nadie<br/>te enseñó a resolver</h2>
+  <div class="divider"></div>
+  <div class="pain-grid" style="margin-top:40px;">
+    <div class="pain-card reveal">
+      <div class="pain-icon">😰</div>
+      <div class="pain-title">"¿Cuánto me queda exactamente?"</div>
+      <div class="pain-desc">Revisas el banco, ves el balance, pero no sabes si ese dinero alcanza para los próximos 15 días o no.</div>
+    </div>
+    <div class="pain-card reveal">
+      <div class="pain-icon">💸</div>
+      <div class="pain-title">Gastas sin saber las consecuencias</div>
+      <div class="pain-desc">Compras algo hoy y al final del mes te das cuenta de que te comiste el dinero de un pago importante.</div>
+    </div>
+    <div class="pain-card reveal">
+      <div class="pain-icon">📊</div>
+      <div class="pain-title">Las apps de presupuesto son complicadas</div>
+      <div class="pain-desc">Empezaste a usar una app de finanzas, le pusiste categorías, y la dejaste al tercer día porque era demasiado trabajo.</div>
+    </div>
+  </div>
+</section>
+
+<!-- FOR WHO -->
+<section class="who-section">
+  <div class="who-inner reveal">
+    <div class="section-label">¿Para quién es DailyBudget?</div>
+    <h2>Si te identificas con alguno<br/>de estos, esto es para ti</h2>
+    <div class="divider"></div>
+    <div class="who-grid">
+      <div class="who-card reveal">
+        <div class="who-avatar">🛍️</div>
+        <div class="who-name">Gastas sin darte cuenta</div>
+        <div class="who-desc">Llegas a fin de mes preguntándote a dónde fue el dinero. Necesitas saber en tiempo real cuánto puedes gastar hoy.</div>
+      </div>
+      <div class="who-card reveal">
+        <div class="who-avatar">📅</div>
+        <div class="who-name">Tienes pagos fijos que proteger</div>
+        <div class="who-desc">Renta, internet, car payment — y siempre el miedo de que un gasto extra te descuadre todo el mes.</div>
+      </div>
+      <div class="who-card reveal">
+        <div class="who-avatar">🎯</div>
+        <div class="who-name">Quieres ahorrar para algo</div>
+        <div class="who-desc">Tienes una meta — un viaje, un fondo de emergencia — pero nunca llega el dinero porque no separas nada desde el principio.</div>
+      </div>
+      <div class="who-card reveal">
+        <div class="who-avatar">🔄</div>
+        <div class="who-name">Ingreso variable o freelance</div>
+        <div class="who-desc">Tu sueldo cambia cada mes. Necesitas una herramienta que te ayude a manejar lo que llegó — sin importar cuánto fue.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="section reveal">
+  <div class="section-label">Cómo funciona</div>
+  <h2>Tan simple que lo usarás<br/>todos los días</h2>
+  <div class="divider"></div>
+  <div class="steps">
+    <div class="step reveal">
+      <div class="step-num">01</div>
+      <div>
+        <div class="step-title">Entra tu dinero disponible y la fecha de tu próximo ingreso</div>
+        <div class="step-desc">¿Cuánto tienes ahora? ¿Cuándo cobras? Eso es todo lo que necesitas para empezar. <span class="step-accent">30 segundos.</span></div>
+      </div>
+    </div>
+    <div class="step reveal">
+      <div class="step-num">02</div>
+      <div>
+        <div class="step-title">Protege tus pagos fijos y metas de ahorro</div>
+        <div class="step-desc">Agrega la renta, el seguro, lo que sea. DailyBudget los saca del cálculo para que <span class="step-accent">ese dinero nunca lo toques.</span></div>
+      </div>
+    </div>
+    <div class="step reveal">
+      <div class="step-num">03</div>
+      <div>
+        <div class="step-title">Ve cuánto puedes gastar hoy — y toma mejores decisiones</div>
+        <div class="step-desc">Cada mañana sabes exactamente tu presupuesto del día. ¿Quieres comprarte algo? <span class="step-accent">Pregúntale a la app primero.</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="section reveal" style="padding-top:0;">
+  <div class="section-label">Lo que incluye</div>
+  <h2>Todo lo que necesitas,<br/>nada que no necesitas</h2>
+  <div class="divider"></div>
+  <div class="features-grid">
+    <div class="feat-card reveal">
+      <div class="feat-icon">📆</div>
+      <div class="feat-title">Presupuesto diario automático</div>
+      <div class="feat-desc">Divide tu dinero entre los días restantes del período. Se actualiza solo cada día.</div>
+    </div>
+    <div class="feat-card reveal">
+      <div class="feat-icon">🔒</div>
+      <div class="feat-title">Protección de pagos fijos</div>
+      <div class="feat-desc">Renta, utilidades, deudas — los apartas primero. El presupuesto diario se calcula con lo que queda.</div>
+    </div>
+    <div class="feat-card reveal">
+      <div class="feat-icon">🎯</div>
+      <div class="feat-title">Metas de ahorro integradas</div>
+      <div class="feat-desc">Separa dinero para tus metas desde el primer día, no con lo que "sobra" al final.</div>
+    </div>
+    <div class="feat-card reveal">
+      <div class="feat-icon">✅</div>
+      <div class="feat-title">Verificador de gastos</div>
+      <div class="feat-desc">Antes de pagar algo, dile a la app cuánto cuesta. Te dice si puedes o si eso te va a afectar.</div>
+    </div>
+    <div class="feat-card reveal">
+      <div class="feat-icon">📱</div>
+      <div class="feat-title">Instala como app en tu teléfono</div>
+      <div class="feat-desc">Funciona en Android e iPhone sin ir al app store. Se instala directo desde el navegador.</div>
+    </div>
+    <div class="feat-card reveal">
+      <div class="feat-icon">🔐</div>
+      <div class="feat-title">Sin cuenta, sin nube</div>
+      <div class="feat-desc">Tu información se queda en tu teléfono. Nadie la ve, nadie la guarda. Solo tú.</div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="testimonials-section">
+  <div class="testimonials-inner reveal">
+    <div class="section-label">Lo que dicen quienes lo usan</div>
+    <h2>Resultados reales de<br/>personas reales</h2>
+    <div class="divider"></div>
+    <div class="testi-grid">
+      <div class="testi-card reveal">
+        <div class="testi-stars">★★★★★</div>
+        <div class="testi-quote">"Llevaba meses sin poder ahorrar nada. Con DailyBudget <strong>en la primera semana ya separé $80 para mi fondo de emergencia.</strong> La clave es que me dice exactamente cuánto puedo gastar cada día."</div>
+        <div class="testi-author">
+          <div class="testi-avatar">👩</div>
+          <div>
+            <div class="testi-name">María G.</div>
+            <div class="testi-role">Trabajadora independiente · Puerto Rico</div>
+          </div>
+        </div>
+      </div>
+      <div class="testi-card reveal">
+        <div class="testi-stars">★★★★★</div>
+        <div class="testi-quote">"Probé Mint, YNAB, todas esas apps. Siempre las dejaba porque eran demasiado complicadas. DailyBudget <strong>es la única que sigo usando después de 2 meses.</strong> Es demasiado simple para no usarla."</div>
+        <div class="testi-author">
+          <div class="testi-avatar">👨</div>
+          <div>
+            <div class="testi-name">Carlos R.</div>
+            <div class="testi-role">Empleado de tiempo completo · Florida</div>
+          </div>
+        </div>
+      </div>
+      <div class="testi-card reveal">
+        <div class="testi-stars">★★★★★</div>
+        <div class="testi-quote">"Tengo ingreso variable como freelancer y siempre me estresaba sin saber si alcanzaba. Ahora entro lo que cobré y la app me dice cuánto puedo gastar cada día. <strong>Finalmente siento que tengo el control.</strong>"</div>
+        <div class="testi-author">
+          <div class="testi-avatar">👩</div>
+          <div>
+            <div class="testi-name">Laura M.</div>
+            <div class="testi-role">Diseñadora freelance · Miami</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing-section">
+  <div class="pricing-inner reveal">
+    <div class="section-label">Precio</div>
+    <h2>Una sola vez.<br/>Tuya para siempre.</h2>
+    <div class="divider" style="margin:16px auto 0;"></div>
+    <div class="price-card">
+      <div class="price-urgency">
+        🔥 Precio introductorio — puede subir pronto
+      </div>
+      <div class="price-tag"><sup>$</sup>7</div>
+      <div class="price-desc">Pago único · Sin suscripción · Sin renovaciones</div>
+      <ul class="price-features">
+        <li>Presupuesto diario automático</li>
+        <li>Protección de pagos fijos</li>
+        <li>Metas de ahorro integradas</li>
+        <li>Verificador de gastos antes de pagar</li>
+        <li>Instala como app en Android e iPhone</li>
+        <li>Sin cuenta, sin nube, sin rastreo</li>
+        <li>Actualizaciones futuras incluidas</li>
+      </ul>
+      <a href="https://direrian.gumroad.com/l/xptggu" class="btn-buy">
+        Controlar mi dinero ahora — $7 →
+      </a>
+      <p class="price-guarantee">
+        🔒 Pago seguro vía Gumroad · Acceso inmediato tras la compra<br/>
+        ¿Preguntas? Respondo personalmente por email.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="faq-section">
+  <div class="faq-inner reveal">
+    <div class="section-label">Preguntas frecuentes</div>
+    <h2>Todo lo que necesitas<br/>saber antes de comprar</h2>
+    <div class="divider"></div>
+    <div class="faq-list">
+      <div class="faq-item">
+        <div class="faq-q">¿Es realmente un solo pago de $7? <span class="faq-icon">+</span></div>
+        <div class="faq-a">Sí. Pagas $7 una sola vez y la app es tuya para siempre. No hay suscripción mensual, no hay cargos ocultos, no hay nada más que pagar.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">¿Funciona en mi teléfono? <span class="faq-icon">+</span></div>
+        <div class="faq-a">Sí. Funciona en Android (instala desde Chrome) e iPhone (instala desde Safari). No necesitas ir al App Store ni al Play Store. Es una app web progresiva (PWA).</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">¿Mis datos financieros están seguros? <span class="faq-icon">+</span></div>
+        <div class="faq-a">Completamente. No necesitas crear una cuenta, no se conecta a tu banco, y toda la información se queda guardada en tu propio teléfono. Nadie más puede verla.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">¿Qué pasa si ya probé otras apps y no funcionaron? <span class="faq-icon">+</span></div>
+        <div class="faq-a">DailyBudget es diferente porque hace una sola cosa muy bien: decirte cuánto puedes gastar hoy. Sin categorías complicadas, sin gráficas que no usas. Es tan simple que se convierte en hábito.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">¿Cómo recibo acceso después de pagar? <span class="faq-icon">+</span></div>
+        <div class="faq-a">Inmediatamente. Después de completar el pago en Gumroad, recibes el enlace directo a la app en tu email. En menos de 2 minutos ya la estás usando.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="final-cta">
+  <div class="section-label">Última llamada</div>
+  <h2 class="reveal">Deja de adivinar.<br/>Empieza a saber.</h2>
+  <p class="reveal">Por el precio de un café, tienes control total sobre tu dinero del día. Hoy mismo.</p>
+  <a href="https://direrian.gumroad.com/l/xptggu" class="btn-primary reveal">
+    Obtener DailyBudget — $7 →
+  </a>
+</section>
+
+<footer>
+  <p>© 2026 DailyBudget · <a href="mailto:TU-EMAIL-AQUI">Contacto</a></p>
+</footer>
+
+<script>
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); } });
+  }, { threshold: 0.1 });
+  reveals.forEach(r => io.observe(r));
+
+  // FAQ accordion
+  document.querySelectorAll('.faq-q').forEach(q => {
+    q.addEventListener('click', () => {
+      const item = q.parentElement;
+      const wasOpen = item.classList.contains('open');
+      document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+      if (!wasOpen) item.classList.add('open');
+    });
+  });
+</script>
+</body>
+</html>
